@@ -1,0 +1,7 @@
+apiVersion: openaihub.ibm.com/v1alpha1
+kind: Jupyterlab
+metadata:
+  name: jupyterlab-cr
+spec:
+  # Add fields here
+  size: 1

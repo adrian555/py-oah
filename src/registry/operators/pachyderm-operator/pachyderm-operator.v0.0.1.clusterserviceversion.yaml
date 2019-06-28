@@ -1,0 +1,172 @@
+# Copyright 2019 IBM Corporation 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: pachyderm-operator.v0.0.1
+  namespace: placeholder
+  annotations:
+    capabilities: Basic Install
+    categories: "AI/Machine Learning"
+    description: "Pachyderm"
+    containerImage: docker.io/ffdlops/pachyderm:v0.0.1
+    support: IBM
+    certified: "false"
+    createdAt: 2019-06-05T08:00:00Z
+    alm-example: |-
+      [{placeholder}]
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: Pachyderm
+      name: pachyderms.openaihub.ibm.com
+      version: v1alpha1
+      description: Pachyderm operator
+      displayName: Pachyderm Operator
+  description: |
+    Pachyderm is a platform for production data pipelines. It helps data scientists and data engineers chain together data scraping, ingestion, cleaning, munging, wrangling, processing, modeling, and analysis in a sane way, via mechanisms such as containerization with Docker and Kubernetes, version control of data, provenance, parallelization and Incremental Processing. 
+  displayName: Pachyderm Operator
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          - pods
+          - pods/exec
+          - pods/log
+          - services
+          - deployments
+          - replicasets
+          - namespaces
+          - serviceaccounts
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          - clusterrolebindings
+          - roles
+          - rolebindings
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - pachyderm-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - openaihub.ibm.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        serviceAccountName: pachyderm-operator
+      deployments:
+      - name: pachyderm-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: pachyderm-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: pachyderm-operator
+            spec:
+              containers:
+              - command:
+                - /usr/local/bin/ao-logs
+                - /tmp/ansible-operator/runner
+                - stdout
+                image: ffdlops/pachyderm:v0.0.1
+                imagePullPolicy: Always
+                name: ansible
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+                  readOnly: true
+              - env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: pachyderm-operator
+                image: ffdlops/pachyderm:v0.0.1
+                imagePullPolicy: Always
+                name: operator
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+              serviceAccountName: pachyderm-operator
+              volumes:
+              - emptyDir: {}
+                name: runner
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider:
+    name: IBM
+  links:
+  - name: Pachyderm
+    url: https://github.com/pachyderm/pachyderm/
+  maintainers:
+  - name: IBM
+    email: someone@us.ibm.com
+  version: 0.0.1

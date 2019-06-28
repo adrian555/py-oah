@@ -1,0 +1,9 @@
+apiVersion: openaihub.ibm.com/v1alpha1
+kind: Kubeflow
+metadata:
+  name: kubeflow-cr
+annotation:
+  ansible.operator-sdk/reconcile-period: 3600s
+spec:
+  # Add fields here
+  size: 1

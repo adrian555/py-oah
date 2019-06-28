@@ -1,0 +1,225 @@
+# Copyright 2019 IBM Corporation 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: kubeflow-operator.v0.0.1
+  namespace: placeholder
+  annotations:
+    capabilities: Basic Install
+    categories: "AI/Machine Learning"
+    description: "Kubeflow"
+    containerImage: docker.io/ffdlops/kfp-master:v0.0.1
+    support: IBM
+    certified: "false"
+    createdAt: 2019-05-19T08:00:00Z
+    alm-example: |-
+      [{placeholder}]
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: Kubeflow
+      name: kubeflows.openaihub.ibm.com
+      version: v1alpha1
+      displayName: Kubeflow operator
+      description: Operator for deploying Kubeflow
+  description: |
+    A machine learning toolkit for Kubernetes. It is dedicated to making deployments of machine learning (ML) workflows on Kubernetes simple, portable and scalable. The goal is to provide a straightforward way to deploy best-of-breed open-source systems for ML to diverse infrastructures.
+  displayName: Kubeflow Operator
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          - pods
+          - pods/exec
+          - pods/log
+          - services
+          - deployments
+          - replicasets
+          - namespaces
+          - serviceaccounts
+          verbs:
+          - '*'
+        - apiGroups:
+          - snapshot.storage.k8s.io
+          resources:
+          - volumesnapshots
+          verbs:
+          - get
+          - create
+          - delete
+        - apiGroups:
+          - argoproj.io
+          resources:
+          - workflows
+          verbs:
+          - '*'
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          - clusterrolebindings
+          - roles
+          - rolebindings
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - metacontroller.k8s.io
+          resources:
+          - compositecontrollers
+          verbs:
+          - '*'
+        - apiGroups:
+          - kubeflow.org
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - batch
+          resources:
+          - jobs
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apiextensions.k8s.io
+          resources:
+          - customresourcedefinitions
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resourceNames:
+          - kubeflow-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - extensions
+          resources:
+          - ingresses
+          - podsecuritypolicies
+          - deployments
+          - replicasets
+          verbs:
+          - '*'
+        - apiGroups:
+          - openaihub.ibm.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - app.k8s.io
+          resources:
+          - applications
+          verbs:
+          - '*'
+        serviceAccountName: kubeflow-operator
+      deployments:
+      - name: kubeflow-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: kubeflow-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: kubeflow-operator
+            spec:
+              containers:
+              - command:
+                - /usr/local/bin/ao-logs
+                - /tmp/ansible-operator/runner
+                - stdout
+                image: ffdlops/kfp-master:v0.0.1
+                imagePullPolicy: Always
+                name: ansible
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+                  readOnly: true
+              - env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: kubeflow-operator
+                image: ffdlops/kfp-master:v0.0.1
+                imagePullPolicy: Always
+                name: operator
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+              serviceAccountName: kubeflow-operator
+              volumes:
+              - emptyDir: {}
+                name: runner
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider:
+    name: IBM
+  links:
+  - name: Kubeflow
+    url: https://github.com/kubeflow/kubeflow
+  maintainers:
+  - name: IBM
+    email: someone@us.ibm.com
+  version: 0.0.1

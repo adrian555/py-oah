@@ -1,0 +1,167 @@
+# Copyright 2019 IBM Corporation 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: openaihub-operator.v0.0.1
+  namespace: placeholder
+  annotations:
+    capabilities: Basic Install
+    categories: "AI/Machine Learning"
+    description: "OpenAIHub"
+    containerImage: docker.io/ffdlops/openaihub:v0.0.1
+    support: IBM
+    certified: "false"
+    createdAt: 2019-04-29T08:00:00Z
+    alm-example: |-
+      [{placeholder}]
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: OpenAIHub
+      name: openaihubs.openaihub.ibm.com
+      version: v1alpha1
+      displayName: OpenAIHub operator
+      description: Operator for deploying OpenAIHub
+  description: |
+    A platform where AI practitioners compose, share and consume multiple phases in AI lifecycle through building and sharing components, models, notebooks and AI pipelines in one place. Users can compose AI pipelines with the components and models that are built-in or created by the users, and execute the pipelines with Kubeflow pipelines engine. 
+  displayName: Openaihub Operator
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          - nodes
+          verbs:
+          - '*'
+        - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          verbs:
+          - get
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - openaihub-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - openaihub.ibm.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - extensions
+          resources:
+          - deployments
+          verbs:
+          - '*'
+        serviceAccountName: openaihub-operator
+      deployments:
+      - name: openaihub-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: openaihub-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: openaihub-operator
+            spec:
+              containers:
+              - command:
+                - /usr/local/bin/ao-logs
+                - /tmp/ansible-operator/runner
+                - stdout
+                image: ffdlops/openaihub:v0.0.3
+                imagePullPolicy: Always
+                name: ansible
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+                  readOnly: true
+              - env:
+                - name: WATCH_NAMESPACE
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: openaihub-operator
+                image: ffdlops/openaihub:v0.0.3
+                imagePullPolicy: Always
+                name: operator
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+              serviceAccountName: openaihub-operator
+              volumes:
+              - emptyDir: {}
+                name: runner
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider:
+    name: IBM
+  links:
+  - name: OpenAIHub
+    url: https://github.com/OpenAIHub
+  keywords:
+  - OpenAIHub
+  version: 0.0.1
+  maintainers:
+  - name: IBM
+    email: someone@us.ibm.com

@@ -1,0 +1,201 @@
+# Copyright 2019 IBM Corporation 
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); 
+# you may not use this file except in compliance with the License. 
+# You may obtain a copy of the License at 
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0 
+# 
+# Unless required by applicable law or agreed to in writing, software 
+# distributed under the License is distributed on an "AS IS" BASIS, 
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+# See the License for the specific language governing permissions and 
+# limitations under the License. 
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: jupyterlab-operator.v0.0.1
+  namespace: placeholder
+  annotations:
+    capabilities: Basic Install
+    categories: "AI/Machine Learning"
+    description: "Jupyter Lab"
+    containerImage: docker.io/ffdlops/jupyterlab:v0.0.1
+    support: TBD
+    certified: "false"
+    createdAt: 2019-04-29T08:00:00Z
+    alm-examples: |-
+      [{placeholder}]
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: Jupyterlab
+      name: jupyterlabs.openaihub.ibm.com
+      version: v1alpha1
+      displayName: Jupyterlab operator
+      description: Operator for Jupyterhub and Enterprise Gateway
+  description: |
+    Next-generation web-based interface for Project Jupyter that enables users to work with documents and Jupyter notebooks, text editors, terminals and custom components side by side using tabs and splitters, in a flexible, integrated, and interactive manner.  It is similar to an IDE for developing comprehensive, interactive and exploratory notebook projects.
+  displayName: Jupyterlab Operator
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumes
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - '*'
+        - apiGroups:
+          - ""
+          resources:
+          - namespaces
+          - serviceaccounts
+          - pods/portforward
+          verbs:
+          - get
+          - list
+          - create
+          - delete
+          - watch
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          - clusterrolebindings
+          - roles
+          - rolebindings
+          verbs:
+          - get
+          - list
+          - create
+          - delete
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - jupyterlab-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - openaihub.ibm.com
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        - apiGroups:
+          - extensions
+          resources:
+          - ingresses
+          - podsecuritypolicies
+          verbs:
+          - '*'
+        - apiGroups:
+          - storage.k8s.io
+          resources:
+          - storageclasses
+          - volumeattachments
+          verbs:
+          - '*'
+        serviceAccountName: jupyterlab-operator
+      deployments:
+      - name: jupyterlab-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: jupyterlab-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: jupyterlab-operator
+            spec:
+              containers:
+              - command:
+                - /usr/local/bin/ao-logs
+                - /tmp/ansible-operator/runner
+                - stdout
+                image: ffdlops/jupyterlab:v0.0.2
+                imagePullPolicy: Always
+                name: ansible
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+                  readOnly: true
+              - env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: jupyterlab-operator
+                - name: ANSIBLE_INVENTORY
+                  value: /opt/ansible/inventory
+                image: ffdlops/jupyterlab:v0.0.2
+                imagePullPolicy: Always
+                name: operator
+                resources: {}
+                volumeMounts:
+                - mountPath: /tmp/ansible-operator/runner
+                  name: runner
+              serviceAccountName: jupyterlab-operator
+              volumes:
+              - emptyDir: {}
+                name: runner
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider:
+    name: TBD
+  links:
+  - name: JupyterHub
+    url: https://jupyterhub.readthedocs.io/en/stable/
+  - name: Enterprise Gateway
+    url: https://jupyter-enterprise-gateway.readthedocs.io/en/latest/
+  keywords:
+  - JupyterHub
+  - Enterprise Gateway
+  version: 0.0.1
+  maintainers:
+  - name: TBD
+    email: someone@ibm.com

@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: my-pachyderm
+  namespace: operators
+spec:
+  channel: alpha
+  name: pachyderm
+  source: openaihub-catalog
+  sourceNamespace: olm
