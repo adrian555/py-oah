@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="openaihub",
-    version="0.0.1",
+    version="0.0.0.1",
     author="Adrian Zhuang",
     author_email="wzhuang@us.ibm.com",
     description="OpenAIHub installer and others",
@@ -19,7 +19,11 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'kfp',
-        'kubernetes'
-    ]
+        'click',
+        'GitPython'
+    ],
+    entry_points='''
+        [console_scripts]
+        openaihub=openaihub.cli:cli
+    '''
 )
