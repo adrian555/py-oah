@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: REPLACE_OPERATOR-catalog
+  namespace: olm
+spec:
+  sourceType: grpc
+  image: REPLACE_IMAGE
+  imagePullPolicy: Always
+  displayName: Custom Operators
+  publisher: IBM
