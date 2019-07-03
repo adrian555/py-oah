@@ -6,9 +6,16 @@ import time
 from git import Repo
 import tempfile
 import os
+import tarfile
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+# clone the py-oah repo
+openaihub_git_url = "https://github.com/adrian555/py-oah.git"
+tempdir = tempfile.mkdtemp()
+basedir = os.path.join(tempdir, os.path.basename(openaihub_git_url))
+Repo.clone_from(openaihub_git_url, basedir)
 
 def run(cmd):
     ret = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -28,17 +35,48 @@ def cli():
     pass
 
 @cli.command()
+@click.option("--path", metavar="NAME", required=True,
+              help="")
+@click.option("--operator", metavar="NAME", required=True,
+              help="")
+@click.option("--version", "-v", metavar="VERSION",
+              help="")
+def register(path, operator, version):
+    # unpack operator tgz files to src/registry/operators
+    kaniko_path = os.path.join(basedir, "src/registry/kaniko")
+    operator_path = os.path.join(kaniko_path, "operators", operator)
+    os.mkdir(operator_path)
+    tf = tarfile.open(os.path.join(path, operator + ".tgz"), "r:gz")
+    tf.extractall(operator_path)
+
+    # create context.tgz
+    kaniko_tgz = os.path.join(basedir, "kaniko.tgz")
+    tf = tarfile.open(kaniko_tgz, "w:gz")
+    tf.add(kaniko_path, arcname="")
+    tf.close()
+
+    # create docker-config ConfigMap
+    run("kubectl create ConfigMap docker-config --from-file=%s/config.json" % kaniko_path)
+
+    # modify kaniko.yaml with operator destination
+    run("sed -i 's/destination=.*$/destination=abc:v0.0.1\"/' %s/kaniko.yaml" % kaniko_path)
+
+    # create kaniko pod
+    run("kubectl apply -f %s/kaniko.yaml" % kaniko_path)
+
+    # copy build context to kaniko container
+    run("kubectl cp %s kaniko:/tmp/context.tar.gz -c kaniko-init" % kaniko_tgz)
+    run("kubectl exec kaniko -c kaniko-init -- tar -zxf /tmp/context.tar.gz -C /kaniko/build-context")
+    run("kubectl exec kaniko -c kaniko-init -- touch /tmp/complete")
+
+    # now wait for the image to be built and ready
+    
+@cli.command()
 @click.option("--namespace", "-e", metavar="NAME", default="default",
               help="")
 @click.option("--version", "-v", metavar="VERSION",
               help="")
 def install(namespace, version):
-    # clone the py-oah repo
-    openaihub_git_url = "https://github.com/adrian555/py-oah.git"
-    tempdir = tempfile.mkdtemp()
-    basedir = os.path.join(tempdir, os.path.basename(openaihub_git_url))
-    Repo.clone_from(openaihub_git_url, basedir)
-
     # prereq: helm must be installed already
     # init helm tiller service account
     logger.info("### 1/13 ### Init helm tiller...")

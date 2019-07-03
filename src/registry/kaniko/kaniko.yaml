@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+spec:
+  initContainers:
+    - name: kaniko-init
+      image: alpine
+      args:
+        - "sh"
+        - "-c"
+        - "while true; do sleep 10; if [ -f /tmp/complete ]; then break; fi done"
+      volumeMounts:
+        - name: build-context
+          mountPath: /kaniko/build-context
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      args:
+        - "--dockerfile=Dockerfile"
+        - "--context=dir:///kaniko/build-context"
+        - "--destination=docker.io/ffdlops/test:v0.0.1"
+      volumeMounts:
+        - name: build-context
+          mountPath: /kaniko/build-context
+        - name: docker-config
+          mountPath: /kaniko/.docker
+  restartPolicy: Never
+  volumes:
+    - name: docker-config
+      configMap:
+        name: docker-config
+    - name: build-context
+      emptyDir: {}
