@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kaniko
+  name: kaniko-OPERATOR
 spec:
   initContainers:
     - name: kaniko-init
@@ -19,7 +19,7 @@ spec:
       args:
         - "--dockerfile=Dockerfile"
         - "--context=dir:///kaniko/build-context"
-        - "--destination=docker.io/ffdlops/test:v0.0.1"
+        - "--destination=IMAGETAG"
       volumeMounts:
         - name: build-context
           mountPath: /kaniko/build-context

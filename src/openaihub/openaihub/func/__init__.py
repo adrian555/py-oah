@@ -8,6 +8,7 @@ from git import Repo
 import tempfile
 import os
 import tarfile
+import shutil
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -29,7 +30,7 @@ def wait_for(operator, namespace):
             break
         
 def register(path, operator, logpath, version):
-    logger.addHandler(logging.FileHandler(os.path.join(path, "openaihub.log")))
+    logger.addHandler(logging.FileHandler(os.path.join(path, "openaihub-%s.log" % operator.lower())))
 
     # clone the py-oah repo
     openaihub_git_url = "https://github.com/adrian555/py-oah.git"
@@ -60,8 +61,10 @@ def register(path, operator, logpath, version):
     run("kubectl create configmap docker-config --from-file=%s/config.json" % kaniko_path)
 
     # modify kaniko.yaml with operator destination
+    kaniko_pod = "kaniko-" + operator.lower()
     logger.info("### 4/%s ### Create kaniko pod..." % steps)
-    run("sed -i %s 's/destination=.*$/destination=docker.io\/ffdlops\/%s-catalog:v0.0.1\"/' %s/kaniko.yaml" % ("''" if platform.system() == 'Darwin' else '', operator, kaniko_path))
+    run("sed -i %s 's/IMAGETAG/docker.io\/ffdlops\/%s-catalog:v0.0.1/' %s/kaniko.yaml" % ("''" if platform.system() == 'Darwin' else '', operator.lower(), kaniko_path))
+    run("sed -i %s 's/OPERATOR/%s/' %s/kaniko.yaml" % ("''" if platform.system() == 'Darwin' else '', operator.lower(), kaniko_path))
 
     # create kaniko pod
     run("kubectl apply -f %s/kaniko.yaml" % kaniko_path)
@@ -71,15 +74,15 @@ def register(path, operator, logpath, version):
 
     # copy build context to kaniko container
     logger.info("### 5/%s ### Set up kaniko job..." % steps)
-    run("kubectl cp %s kaniko:/tmp/context.tar.gz -c kaniko-init" % kaniko_tgz)
-    run("kubectl exec kaniko -c kaniko-init -- tar -zxf /tmp/context.tar.gz -C /kaniko/build-context")
-    run("kubectl exec kaniko -c kaniko-init -- touch /tmp/complete")
+    run("kubectl cp %s %s:/tmp/context.tar.gz -c kaniko-init" % (kaniko_tgz, kaniko_pod))
+    run("kubectl exec %s -c kaniko-init -- tar -zxf /tmp/context.tar.gz -C /kaniko/build-context" % kaniko_pod)
+    run("kubectl exec %s -c kaniko-init -- touch /tmp/complete" % kaniko_pod)
 
     # now wait for the image to be built and ready
     logger.info("### 6/%s ### Wait for the image to be ready..." % steps)
     # pylint: disable=unused-variable
     for x in range(40):
-        if run("kubectl get pod/kaniko|grep kaniko|awk '{ print $3;exit}'").stdout.decode() != "Completed\n" :
+        if run("kubectl get pod/%s|grep %s|awk '{ print $3;exit}'" % (kaniko_pod, kaniko_pod)).stdout.decode() != "Completed\n" :
             time.sleep(15)
         else:
             break
@@ -91,10 +94,13 @@ def register(path, operator, logpath, version):
     # generate catalog source yaml
     logger.info("### 8/%s ### Deploy the catalog..." % steps)
     run("sed -i %s 's/REPLACE_OPERATOR/%s/' %s/catalogsource.yaml" % ("''" if platform.system() == 'Darwin' else '', operator, kaniko_path))
-    run("sed -i %s 's/REPLACE_IMAGE/docker.io\/ffdlops\/%s-catalog:v0.0.1/' %s/catalogsource.yaml" % ("''" if platform.system() == 'Darwin' else '', operator, kaniko_path))
+    run("sed -i %s 's/REPLACE_IMAGE/docker.io\/ffdlops\/%s-catalog:v0.0.1/' %s/catalogsource.yaml" % ("''" if platform.system() == 'Darwin' else '', operator.lower(), kaniko_path))
 
     # deploy the catalog
     run("kubectl apply -f %s/catalogsource.yaml" % kaniko_path)
+
+    # remove temp
+    shutil.rmtree(basedir, ignore_errors=True)
 
     logger.info("Done.")
 
@@ -183,6 +189,9 @@ def install(namespace, version):
     # add cluster-admin to default service account for registration and installation of other operators
     logger.info("### 14/%s ### Add cluster admin..." % steps)
     run("kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=%s:default" % openaihub_namespace)
+
+    # remove temp
+    shutil.rmtree(basedir, ignore_errors=True)
 
     logger.info("Done.")
 
