@@ -20,7 +20,7 @@ metadata:
     capabilities: Basic Install
     categories: "AI/Machine Learning"
     description: "Jupyter Lab"
-    containerImage: docker.io/ffdlops/jupyterlab:v0.0.1
+    containerImage: docker.io/ffdlops/jupyterlab:v0.0.3
     support: TBD
     certified: "false"
     createdAt: 2019-04-29T08:00:00Z
@@ -142,7 +142,7 @@ spec:
                 - /usr/local/bin/ao-logs
                 - /tmp/ansible-operator/runner
                 - stdout
-                image: ffdlops/jupyterlab:v0.0.2
+                image: ffdlops/jupyterlab:v0.0.3
                 imagePullPolicy: Always
                 name: ansible
                 resources: {}
@@ -163,7 +163,7 @@ spec:
                   value: jupyterlab-operator
                 - name: ANSIBLE_INVENTORY
                   value: /opt/ansible/inventory
-                image: ffdlops/jupyterlab:v0.0.2
+                image: ffdlops/jupyterlab:v0.0.3
                 imagePullPolicy: Always
                 name: operator
                 resources: {}

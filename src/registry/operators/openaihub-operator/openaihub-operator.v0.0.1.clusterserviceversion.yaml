@@ -20,7 +20,7 @@ metadata:
     capabilities: Basic Install
     categories: "AI/Machine Learning"
     description: "OpenAIHub"
-    containerImage: docker.io/ffdlops/openaihub:v0.0.1
+    containerImage: docker.io/ffdlops/openaihub:v0.0.4
     support: IBM
     certified: "false"
     createdAt: 2019-04-29T08:00:00Z
@@ -111,7 +111,7 @@ spec:
                 - /usr/local/bin/ao-logs
                 - /tmp/ansible-operator/runner
                 - stdout
-                image: ffdlops/openaihub:v0.0.3
+                image: ffdlops/openaihub:v0.0.4
                 imagePullPolicy: Always
                 name: ansible
                 resources: {}
@@ -127,7 +127,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: openaihub-operator
-                image: ffdlops/openaihub:v0.0.3
+                image: ffdlops/openaihub:v0.0.4
                 imagePullPolicy: Always
                 name: operator
                 resources: {}
