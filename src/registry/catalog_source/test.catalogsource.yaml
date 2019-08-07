@@ -1,0 +1,11 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: openaihub-catalog
+  namespace: olm
+spec:
+  sourceType: grpc
+  image: ffdlops/operators-test:v0.0.1
+  imagePullPolicy: Always
+  displayName: OpenAIHub Operators
+  publisher: IBM
