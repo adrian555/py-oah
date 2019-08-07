@@ -5,7 +5,7 @@ metadata:
   namespace: olm
 spec:
   sourceType: grpc
-  image: ffdlops/operators:v0.0.1
+  image: ffdlops/operators-test:v0.0.1
   imagePullPolicy: Always
   displayName: OpenAIHub Operators
   publisher: IBM
