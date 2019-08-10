@@ -24,8 +24,7 @@ metadata:
     support: TBD
     certified: "false"
     createdAt: 2019-04-29T08:00:00Z
-    alm-examples: |-
-      [{placeholder}]
+    alm-examples: '[{"apiVersion":"openaihub.ibm.com/v1alpha1","kind":"Pipelines","metadata":{"name":"pipelines-cr"},"spec":{"size":1}}]'
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -191,7 +190,7 @@ spec:
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
-                      fieldPath: metadata.namespace
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
@@ -199,7 +198,12 @@ spec:
                 - name: OPERATOR_NAME
                   value: pipelines-operator
                 - name: KUBEFLOW_TAG
-                  value: fcb9839
+                  value: 42532dc
+                - name: KUBECTL_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      key: KUBECTL_VERSION
+                      name: openaihub-install-config
                 image: ffdlops/kfp:v0.0.1
                 imagePullPolicy: Always
                 name: operator
@@ -232,5 +236,5 @@ spec:
   - Kubeflow
   version: 0.0.1
   maintainers:
-  - name: TBD
-    email: someone@us.ibm.com
+  - name: Weiqiang Zhuang
+    email: wzhuang@us.ibm.com

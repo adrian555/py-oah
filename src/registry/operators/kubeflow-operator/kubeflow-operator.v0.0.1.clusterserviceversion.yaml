@@ -24,8 +24,7 @@ metadata:
     support: IBM
     certified: "false"
     createdAt: 2019-05-19T08:00:00Z
-    alm-example: |-
-      [{placeholder}]
+    alm-examples: '[{"annotation":{"ansible.operator-sdk/reconcile-period":"3600s"},"apiVersion":"openaihub.ibm.com/v1alpha1","kind":"Kubeflow","metadata":{"name":"kubeflow-cr"},"spec":{"size":1}}]'
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -185,13 +184,20 @@ spec:
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
-                      fieldPath: metadata.namespace
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: kubeflow-operator
+                - name: KUBEFLOW_VERSION
+                  value: 0.5.1
+                - name: KUBECTL_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      name: openaihub-install-config
+                      key: KUBECTL_VERSION
                 image: ffdlops/kfp-master:v0.0.1
                 imagePullPolicy: Always
                 name: operator
@@ -220,6 +226,6 @@ spec:
   - name: Kubeflow
     url: https://github.com/kubeflow/kubeflow
   maintainers:
-  - name: IBM
-    email: someone@us.ibm.com
+  - name: Weiqiang Zhuang
+    email: wzhuang@us.ibm.com
   version: 0.0.1

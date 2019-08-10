@@ -24,8 +24,7 @@ metadata:
     support: IBM
     certified: "false"
     createdAt: 2019-06-05T08:00:00Z
-    alm-example: |-
-      [{placeholder}]
+    alm-examples: '[{"apiVersion":"openaihub.ibm.com/v1alpha1","kind":"Pachyderm","metadata":{"name":"example-pachyderm"},"spec":{"size":1}}]'
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -132,13 +131,18 @@ spec:
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
-                      fieldPath: metadata.namespace
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: pachyderm-operator
+                - name: KUBECTL_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      key: KUBECTL_VERSION
+                      name: openaihub-install-config
                 image: ffdlops/pachyderm:v0.0.1
                 imagePullPolicy: Always
                 name: operator
@@ -167,6 +171,6 @@ spec:
   - name: Pachyderm
     url: https://github.com/pachyderm/pachyderm/
   maintainers:
-  - name: IBM
-    email: someone@us.ibm.com
+  - name: Weiqiang Zhuang
+    email: wzhuang@us.ibm.com
   version: 0.0.1

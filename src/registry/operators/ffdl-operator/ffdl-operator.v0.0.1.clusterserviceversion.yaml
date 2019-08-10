@@ -208,11 +208,18 @@ spec:
                 - name: OPERATOR_NAME
                   value: ffdl-operator
                 - name: FFDL_NAMESPACE
-                  value: "default"
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: FFDL_STORAGECLASS
-                  value: "ibmc-file-gold"
+                  value: "nfs-dynamic"
                 - name: FFDL_LOCALSTORAGE
                   value: "false"
+                - name: KUBECTL_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      key: KUBECTL_VERSION
+                      name: openaihub-install-config
                 image: ffdlops/ffdl:v0.0.1
                 imagePullPolicy: Always
                 name: ffdl-operator
@@ -241,5 +248,5 @@ spec:
   - Deep Learning
   version: 0.0.1
   maintainers:
-  - name: IBM
+  - name: Weiqiang Zhuang
     email: wzhuang@us.ibm.com

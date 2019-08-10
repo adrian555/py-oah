@@ -24,8 +24,7 @@ metadata:
     support: IBM
     certified: "false"
     createdAt: 2019-04-29T08:00:00Z
-    alm-example: |-
-      [{placeholder}]
+    alm-examples: '[{"apiVersion":"openaihub.ibm.com/v1alpha1","kind":"OpenAIHub","metadata":{"name":"openaihub-cr"},"spec":{"size":1}}]'
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -54,6 +53,7 @@ spec:
           - secrets
           - nodes
           - namespaces
+          - jobs
           verbs:
           - '*'
         - apiGroups:
@@ -92,6 +92,12 @@ spec:
           - deployments
           verbs:
           - '*'
+        - apiGroups:
+          - batch
+          resources:
+          - jobs
+          verbs:
+          - '*'
         serviceAccountName: openaihub-operator
       deployments:
       - name: openaihub-operator
@@ -121,12 +127,20 @@ spec:
                   readOnly: true
               - env:
                 - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: openaihub-operator
+                - name: KUBECTL_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      key: KUBECTL_VERSION
+                      name: openaihub-install-config
                 image: ffdlops/openaihub:v0.0.4
                 imagePullPolicy: Always
                 name: operator
@@ -158,5 +172,5 @@ spec:
   - OpenAIHub
   version: 0.0.1
   maintainers:
-  - name: IBM
-    email: someone@us.ibm.com
+  - name: Weiqiang Zhuang
+    email: wzhuang@us.ibm.com

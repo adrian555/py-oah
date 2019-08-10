@@ -24,8 +24,7 @@ metadata:
     support: TBD
     certified: "false"
     createdAt: 2019-04-29T08:00:00Z
-    alm-examples: |-
-      [{placeholder}]
+    alm-examples: '[{"apiVersion":"openaihub.ibm.com/v1alpha1","kind":"Jupyterlab","metadata":{"name":"jupyterlab-cr"},"spec":{"size":1}}]'
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -154,7 +153,7 @@ spec:
                 - name: WATCH_NAMESPACE
                   valueFrom:
                     fieldRef:
-                      fieldPath: metadata.namespace
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
@@ -163,6 +162,11 @@ spec:
                   value: jupyterlab-operator
                 - name: ANSIBLE_INVENTORY
                   value: /opt/ansible/inventory
+                - name: KUBECTL_VERSION
+                  valueFrom:
+                    configMapKeyRef:
+                      key: KUBECTL_VERSION
+                      name: openaihub-install-config
                 image: ffdlops/jupyterlab:v0.0.3
                 imagePullPolicy: Always
                 name: operator
@@ -186,7 +190,7 @@ spec:
     type: AllNamespaces
   maturity: alpha
   provider:
-    name: TBD
+    name: IBM
   links:
   - name: JupyterHub
     url: https://jupyterhub.readthedocs.io/en/stable/
@@ -197,5 +201,5 @@ spec:
   - Enterprise Gateway
   version: 0.0.1
   maintainers:
-  - name: TBD
-    email: someone@ibm.com
+  - name: Weiqiang Zhuang
+    email: wzhuang@ibm.com
